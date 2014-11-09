@@ -3,12 +3,12 @@ $ps1 = [PowerShell]::Create().AddScript($code)
 $code={start-sleep 2;"hello"}
 $ps2 = [PowerShell]::Create().AddScript($code)
 
-Get-Process powershell | Select-Object -ExpandProperty threads | Measure-Object | Select-Object -ExpandProperty count
+Get-Process powershell_ise | Select-Object -ExpandProperty threads | Measure-Object | Select-Object -ExpandProperty count
 $handle1 = $ps1.BeginInvoke()
 $handle2 = $ps2.BeginInvoke()
 
 while (!$handle1.IsCompleted -or !$handle2.iscompleted) {
-    Get-Process powershell | Select-Object -ExpandProperty threads | Measure-Object | Select-Object -ExpandProperty count
+    Get-Process powershell_ise | Select-Object -ExpandProperty threads | Measure-Object | Select-Object -ExpandProperty count
     Start-Sleep -Milliseconds 500
 }
 
@@ -20,4 +20,4 @@ $ps2.EndInvoke($handle2)
 $ps2.Runspace.Close()
 $ps2.Dispose()
 
-Get-Process powershell | Select-Object -ExpandProperty threads | Measure-Object | Select-Object -ExpandProperty count
+Get-Process powershell_ise | Select-Object -ExpandProperty threads | Measure-Object | Select-Object -ExpandProperty count

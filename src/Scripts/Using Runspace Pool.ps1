@@ -1,23 +1,42 @@
-﻿(0..20) | ForEach-Parallel -MaxThreads 4{
-  $_
-  Start-Sleep 3
-}
-
-(0..50) | ForEach-Parallel -MaxThreads 4{
-  $_
-  Start-Sleep (Get-Random -Minimum 0 -Maximum 5)
-}
-
-('server1','server2') | ForEach-Parallel -MaxThreads 2 {
-  Test-Connection -ComputerName $_ -Count 1
-}
+﻿$rsPool = New-RunspacePool -MaxSize 4
+0..20 | Invoke-RunspaceAsync -ScriptBlock {
+  param (
+  [int]$SequenceNumber
+  )
+  Start-Sleep -Seconds 3
+  Write-Output -InputObject "Runspace $SequenceNumber Finished"
+} -RunspacePool $rsPool
 
 
-# dirty variables
-(0..10) | ForEach-Parallel -MaxThreads 4 {
-  $r++
-  New-Object psobject -Property @{
-        n = $_
-        r = $r
-    }
-}
+$rsPool = New-RunspacePool -MaxSize 10
+0..50 | Invoke-RunspaceAsync -ScriptBlock {
+  param (
+  [int]$SequenceNumber
+  )
+  Start-Sleep -Seconds (Get-Random -Minimum 1 -Maximum 5)
+  Write-Output -InputObject "Runspace $SequenceNumber Finished"
+} -RunspacePool $rsPool
+
+
+$rsPool = New-RunspacePool -MaxSize 2
+'google.com', 'yahoo.com' | Invoke-RunspaceAsync -ScriptBlock {
+  param (
+  [string]$ComputerName
+  )
+  Start-Sleep -Seconds (Get-Random -Minimum 1 -Maximum 2)
+  Test-Connection -ComputerName $ComputerName
+} -RunspacePool $rsPool
+
+
+$rsPool = New-RunspacePool -MaxSize 4
+0..10 | Invoke-RunspaceAsync -ScriptBlock {
+  param (
+  [int]$SequenceNumber
+  )
+  $spaceVariable++
+  Write-Output -InputObject ( [PSCustomObject] @{ 
+    SequenceNumber = $SequenceNumber
+    SpaceVariable = $spaceVariable 
+  })
+} -RunspacePool $rsPool |
+Format-Table -AutoSize
